@@ -1258,6 +1258,30 @@ class ImageToImageViewModel : BaseGenerationViewModel<ImageToImageUiState, Image
         savePreferences()
     }
 
+    /**
+     * Reset prompt to seasonal default.
+     * Clears saved positive prompt and reloads with seasonal default.
+     */
+    fun resetPromptToDefault() {
+        val ctx = applicationContext ?: return
+        val serverId = ConnectionManager.currentServerId ?: return
+
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                // Clear saved positive prompt
+                val prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                prefs.edit().remove("${serverId}_$PREF_POSITIVE_PROMPT").apply()
+            }
+
+            // Set prompt to seasonal default
+            val defaultPrompt = SeasonalPrompts.getImageToImagePrompt()
+            _uiState.update { it.copy(positivePrompt = defaultPrompt) }
+
+            // Emit toast event
+            _events.emit(ImageToImageEvent.ShowToast(R.string.prompt_preset_reset_prompt_success))
+        }
+    }
+
     fun onStepsChange(steps: String) {
         val error = ValidationUtils.validateSteps(steps, applicationContext)
         _uiState.value = _uiState.value.copy(steps = steps, stepsError = error)

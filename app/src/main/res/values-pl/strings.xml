@@ -154,8 +154,8 @@
     <string name="auto_connect_description">Automatyczne łączenie z ostatnim serwerem przy uruchomieniu aplikacji</string>
     <string name="show_built_in_workflows_label">Pokaż wbudowane przepływy pracy</string>
     <string name="show_built_in_workflows_description">Wyświetlaj domyślne przepływy pracy dołączone do aplikacji</string>
-    <string name="reset_prompts_button">Resetuj prompty</string>
-    <string name="reset_prompts_success">Prompty przywrócone do domyślnych</string>
+    <string name="reset_prompts_and_library_button">Resetuj prompty i bibliotekę</string>
+    <string name="reset_prompts_and_library_success">Prompty i biblioteka zresetowane</string>
     <string name="clear_cache_button">Wyczyść pamięć podręczną</string>
     <string name="restore_defaults_button">Przywróć ustawienia domyślne</string>
 
@@ -568,6 +568,8 @@
     <string name="prompt_presets_button">Szablony promptów</string>
     <string name="prompt_presets_open_library">Otwórz bibliotekę promptów</string>
     <string name="prompt_presets_save_current">Zapisz obecny prompt</string>
+    <string name="prompt_preset_reset_prompt">Resetuj prompt</string>
+    <string name="prompt_preset_reset_prompt_success">Prompt przywrócony do domyślnego</string>
     <string name="prompt_library_title">Biblioteka promptów</string>
     <string name="prompt_library_search_placeholder">Szukaj promptów…</string>
     <string name="prompt_library_empty">Brak zapisanych promptów</string>

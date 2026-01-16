@@ -39,6 +39,7 @@ sealed class PromptPresetEvent {
     data class PresetApplied(val prompt: String) : PromptPresetEvent()
     data class ShowToast(val messageResId: Int) : PromptPresetEvent()
     data object MaxFavoritesReached : PromptPresetEvent()
+    data object ResetPrompt : PromptPresetEvent()
 }
 
 /**
@@ -147,6 +148,16 @@ class PromptPresetViewModel : ViewModel() {
         }
         viewModelScope.launch {
             _events.emit(PromptPresetEvent.PresetApplied(preset.prompt))
+        }
+    }
+
+    /**
+     * Request prompt reset to default.
+     * The actual reset is handled by the generation screen's ViewModel.
+     */
+    fun resetPrompt() {
+        viewModelScope.launch {
+            _events.emit(PromptPresetEvent.ResetPrompt)
         }
     }
 

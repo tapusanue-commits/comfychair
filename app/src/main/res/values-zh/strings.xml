@@ -154,8 +154,8 @@
     <string name="auto_connect_description">启动应用时自动连接到上次使用的服务器</string>
     <string name="show_built_in_workflows_label">显示内置工作流</string>
     <string name="show_built_in_workflows_description">显示应用程序自带的默认工作流</string>
-    <string name="reset_prompts_button">重置提示词</string>
-    <string name="reset_prompts_success">提示词已恢复为默认值</string>
+    <string name="reset_prompts_and_library_button">重置提示词和库</string>
+    <string name="reset_prompts_and_library_success">提示词和库已重置</string>
     <string name="clear_cache_button">清空缓存</string>
     <string name="restore_defaults_button">恢复默认设置</string>
 
@@ -568,6 +568,8 @@
     <string name="prompt_presets_button">提示词模板</string>
     <string name="prompt_presets_open_library">打开提示词库</string>
     <string name="prompt_presets_save_current">保存当前提示词</string>
+    <string name="prompt_preset_reset_prompt">重置提示词</string>
+    <string name="prompt_preset_reset_prompt_success">提示词已恢复默认</string>
     <string name="prompt_library_title">提示词库</string>
     <string name="prompt_library_search_placeholder">搜索提示词…</string>
     <string name="prompt_library_empty">暂无保存的提示词</string>

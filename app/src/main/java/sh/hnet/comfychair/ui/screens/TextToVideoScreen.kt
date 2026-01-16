@@ -203,6 +203,9 @@ fun TextToVideoScreen(
                 is PromptPresetEvent.MaxFavoritesReached -> {
                     Toast.makeText(context, context.getString(R.string.prompt_preset_max_favorites), Toast.LENGTH_SHORT).show()
                 }
+                is PromptPresetEvent.ResetPrompt -> {
+                    textToVideoViewModel.resetPromptToDefault()
+                }
             }
         }
     }
@@ -318,7 +321,8 @@ fun TextToVideoScreen(
                     currentPromptIsEmpty = uiState.positivePrompt.isEmpty(),
                     onPresetSelected = { presetViewModel.onPresetSelected(it) },
                     onOpenLibrary = { presetViewModel.showLibrary() },
-                    onSaveCurrentPrompt = { presetViewModel.showSaveDialog(uiState.positivePrompt) }
+                    onSaveCurrentPrompt = { presetViewModel.showSaveDialog(uiState.positivePrompt) },
+                    onResetPrompt = { presetViewModel.resetPrompt() }
                 )
             },
             trailingIcon = {

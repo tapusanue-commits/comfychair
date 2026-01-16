@@ -154,8 +154,8 @@
     <string name="auto_connect_description">Beim App-Start automatisch mit dem letzten Server verbinden</string>
     <string name="show_built_in_workflows_label">Integrierte Workflows anzeigen</string>
     <string name="show_built_in_workflows_description">Die mit der App gebündelten Standard-Workflows anzeigen</string>
-    <string name="reset_prompts_button">Prompts zurücksetzen</string>
-    <string name="reset_prompts_success">Prompts auf Standardwerte zurückgesetzt</string>
+    <string name="reset_prompts_and_library_button">Prompts und Bibliothek zurücksetzen</string>
+    <string name="reset_prompts_and_library_success">Prompts und Bibliothek zurückgesetzt</string>
     <string name="clear_cache_button">Cache leeren</string>
     <string name="restore_defaults_button">Standardeinstellungen wiederherstellen</string>
 
@@ -566,6 +566,8 @@
     <string name="prompt_presets_button">Prompt-Vorlagen</string>
     <string name="prompt_presets_open_library">Prompt-Bibliothek öffnen</string>
     <string name="prompt_presets_save_current">Aktuellen Prompt speichern</string>
+    <string name="prompt_preset_reset_prompt">Prompt zurücksetzen</string>
+    <string name="prompt_preset_reset_prompt_success">Prompt auf Standard zurückgesetzt</string>
     <string name="prompt_library_title">Prompt-Bibliothek</string>
     <string name="prompt_library_search_placeholder">Prompts suchen…</string>
     <string name="prompt_library_empty">Keine gespeicherten Prompts</string>

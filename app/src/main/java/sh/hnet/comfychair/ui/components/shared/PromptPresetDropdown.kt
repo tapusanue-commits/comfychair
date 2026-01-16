@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.BookmarkBorder
@@ -15,6 +16,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,6 +41,7 @@ fun PromptPresetDropdown(
     onPresetSelected: (String) -> Unit,
     onOpenLibrary: () -> Unit,
     onSaveCurrentPrompt: () -> Unit,
+    onResetPrompt: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -127,6 +130,28 @@ fun PromptPresetDropdown(
                 leadingIcon = {
                     Icon(Icons.Default.Save, contentDescription = null)
                 }
+            )
+
+            // Divider before reset
+            HorizontalDivider()
+
+            // Reset prompt button
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.prompt_preset_reset_prompt)) },
+                onClick = {
+                    expanded = false
+                    onResetPrompt()
+                },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Refresh,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                },
+                colors = MenuDefaults.itemColors(
+                    textColor = MaterialTheme.colorScheme.error
+                )
             )
         }
     }

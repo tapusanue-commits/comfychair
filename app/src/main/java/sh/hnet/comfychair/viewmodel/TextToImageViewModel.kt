@@ -8,8 +8,10 @@ import android.net.Uri
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import sh.hnet.comfychair.R
 import sh.hnet.comfychair.WorkflowManager
 import sh.hnet.comfychair.WorkflowType
@@ -346,6 +348,30 @@ class TextToImageViewModel : BaseGenerationViewModel<TextToImageUiState, TextToI
     fun onNegativePromptChange(negativePrompt: String) {
         _uiState.value = _uiState.value.copy(negativePrompt = negativePrompt)
         saveConfiguration()
+    }
+
+    /**
+     * Reset prompt to seasonal default.
+     * Clears saved positive prompt and reloads with seasonal default.
+     */
+    fun resetPromptToDefault() {
+        val ctx = applicationContext ?: return
+        val serverId = ConnectionManager.currentServerId ?: return
+
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                // Clear saved positive prompt
+                val prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                prefs.edit().remove("${serverId}_$PREF_POSITIVE_PROMPT").apply()
+            }
+
+            // Set prompt to seasonal default
+            val defaultPrompt = SeasonalPrompts.getTextToImagePrompt()
+            _uiState.update { it.copy(positivePrompt = defaultPrompt) }
+
+            // Emit toast event
+            _events.emit(TextToImageEvent.ShowToast(R.string.prompt_preset_reset_prompt_success))
+        }
     }
 
     /**

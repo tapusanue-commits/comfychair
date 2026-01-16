@@ -643,12 +643,15 @@ fun ApplicationSettingsScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Reset prompts button
+                // Reset prompts and library button
                 Button(
-                    onClick = { viewModel.resetPrompts(context) },
-                    modifier = Modifier.fillMaxWidth()
+                    onClick = { viewModel.resetPromptsAndLibrary(context) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
                 ) {
-                    Text(stringResource(R.string.reset_prompts_button))
+                    Text(stringResource(R.string.reset_prompts_and_library_button))
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

@@ -30,6 +30,7 @@ import sh.hnet.comfychair.storage.BackupManager
 import sh.hnet.comfychair.storage.RestoreResult
 import sh.hnet.comfychair.storage.CredentialStorage
 import sh.hnet.comfychair.storage.ServerStorage
+import sh.hnet.comfychair.storage.PromptPresetStorage
 import sh.hnet.comfychair.storage.WorkflowValuesStorage
 import sh.hnet.comfychair.util.DebugLogger
 import androidx.compose.runtime.Immutable
@@ -369,11 +370,11 @@ class SettingsViewModel : ViewModel() {
     }
 
     /**
-     * Reset prompts to seasonal defaults.
-     * Clears positive prompts from SharedPreferences (so ViewModels will load seasonal defaults)
-     * and clears negative prompts from per-workflow saved values.
+     * Reset all prompts to seasonal defaults AND clear the prompt library.
+     * Clears positive prompts from SharedPreferences (so ViewModels will load seasonal defaults),
+     * clears negative prompts from per-workflow saved values, and clears all saved presets.
      */
-    fun resetPrompts(context: Context) {
+    fun resetPromptsAndLibrary(context: Context) {
         val serverId = ConnectionManager.currentServerId ?: return
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
@@ -399,9 +400,13 @@ class SettingsViewModel : ViewModel() {
                 // Clear negative prompts from per-workflow saved values
                 val workflowValuesStorage = WorkflowValuesStorage(context)
                 workflowValuesStorage.clearNegativePromptsForServer(serverId)
+
+                // Clear prompt library
+                val promptPresetStorage = PromptPresetStorage(context)
+                promptPresetStorage.clearAll()
             }
 
-            _events.emit(SettingsEvent.ShowToast(R.string.reset_prompts_success))
+            _events.emit(SettingsEvent.ShowToast(R.string.reset_prompts_and_library_success))
             _events.emit(SettingsEvent.RefreshNeeded)
         }
     }

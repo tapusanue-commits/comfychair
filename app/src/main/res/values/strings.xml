@@ -157,8 +157,8 @@
     <string name="auto_connect_description">Automatically connect to the last server on app launch</string>
     <string name="show_built_in_workflows_label">Show built-in workflows</string>
     <string name="show_built_in_workflows_description">Display the default workflows bundled with the app</string>
-    <string name="reset_prompts_button">Reset Prompts</string>
-    <string name="reset_prompts_success">Prompts reset to defaults</string>
+    <string name="reset_prompts_and_library_button">Reset Prompts and Library</string>
+    <string name="reset_prompts_and_library_success">Prompts and library reset</string>
     <string name="clear_cache_button">Clear Cache</string>
     <string name="restore_defaults_button">Restore Defaults</string>
 
@@ -589,6 +589,8 @@
     <string name="prompt_presets_button">Prompt presets</string>
     <string name="prompt_presets_open_library">Open prompt library</string>
     <string name="prompt_presets_save_current">Save current prompt</string>
+    <string name="prompt_preset_reset_prompt">Reset Prompt</string>
+    <string name="prompt_preset_reset_prompt_success">Prompt reset to default</string>
     <string name="prompt_library_title">Prompt Library</string>
     <string name="prompt_library_search_placeholder">Search prompts…</string>
     <string name="prompt_library_empty">No saved prompts</string>

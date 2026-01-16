@@ -99,6 +99,14 @@ class PromptPresetStorage(context: Context) {
     }
 
     /**
+     * Clear all presets from storage.
+     * Called when user resets all prompts and library from App Settings.
+     */
+    fun clearAll() {
+        prefs.edit().remove(KEY_PRESETS_JSON).apply()
+    }
+
+    /**
      * Get a preset by ID.
      */
     fun getPreset(presetId: String): PromptPreset? {

@@ -800,6 +800,30 @@ class ImageToVideoViewModel : BaseGenerationViewModel<ImageToVideoUiState, Image
         savePreferences()
     }
 
+    /**
+     * Reset prompt to seasonal default.
+     * Clears saved positive prompt and reloads with seasonal default.
+     */
+    fun resetPromptToDefault() {
+        val ctx = applicationContext ?: return
+        val serverId = ConnectionManager.currentServerId ?: return
+
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                // Clear saved positive prompt
+                val prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                prefs.edit().remove("${serverId}_$KEY_POSITIVE_PROMPT").apply()
+            }
+
+            // Set prompt to seasonal default
+            val defaultPrompt = SeasonalPrompts.getImageToVideoPrompt()
+            _uiState.update { it.copy(positivePrompt = defaultPrompt) }
+
+            // Emit toast event
+            _events.emit(ImageToVideoEvent.ShowToast(R.string.prompt_preset_reset_prompt_success))
+        }
+    }
+
     // Primary LoRA chain operations (for single-model workflows like LTX 2.0)
     fun onAddLora() {
         val state = _uiState.value
