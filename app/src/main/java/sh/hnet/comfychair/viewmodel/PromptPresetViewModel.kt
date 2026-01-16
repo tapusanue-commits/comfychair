@@ -72,11 +72,20 @@ class PromptPresetViewModel : ViewModel() {
      */
     fun refreshPresets() {
         val storage = storage ?: return
+        val newAllPresets = storage.getPresetsForScreen(currentScreenType)
         _uiState.update { state ->
+            // Clear activePresetId if the preset no longer exists
+            val validActivePresetId = if (state.activePresetId != null &&
+                newAllPresets.none { it.id == state.activePresetId }) {
+                null
+            } else {
+                state.activePresetId
+            }
             state.copy(
                 favorites = storage.getFavoritesForScreen(currentScreenType),
-                allPresets = storage.getPresetsForScreen(currentScreenType),
-                availableTags = storage.getTagsForScreen(currentScreenType)
+                allPresets = newAllPresets,
+                availableTags = storage.getTagsForScreen(currentScreenType),
+                activePresetId = validActivePresetId
             )
         }
     }
@@ -156,6 +165,7 @@ class PromptPresetViewModel : ViewModel() {
      * The actual reset is handled by the generation screen's ViewModel.
      */
     fun resetPrompt() {
+        _uiState.update { it.copy(activePresetId = null) }
         viewModelScope.launch {
             _events.emit(PromptPresetEvent.ResetPrompt)
         }
