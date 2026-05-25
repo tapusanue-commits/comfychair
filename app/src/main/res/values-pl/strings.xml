@@ -1,7 +1,7 @@
 <resources>
     <!-- Language settings -->
-    <string name="title_settings_language">Język</string>
-    <string name="desc_settings_language">Wybierz preferowany język aplikacji</string>
+    <string name="title_settings_language">Język i pisownia</string>
+    <string name="desc_settings_language">Wybierz preferowany język aplikacji i ustawienia pisowni</string>
     <string name="language_system_default">Domyślny systemowy</string>
     <string name="label_language">Język aplikacji</string>
 
@@ -160,6 +160,8 @@
     <string name="desc_auto_connect">Automatyczne łączenie z ostatnim serwerem przy uruchomieniu aplikacji</string>
     <string name="label_show_built_in_workflows">Pokaż wbudowane przepływy pracy</string>
     <string name="desc_show_built_in_workflows">Wyświetlaj domyślne przepływy pracy dołączone do aplikacji</string>
+    <string name="label_prompt_spell_check">Sprawdzanie pisowni i autokorekta</string>
+    <string name="desc_prompt_spell_check">Włącz sprawdzanie pisowni i autokorektę w polach promptu. Terminy specyficzne dla AI mogą być oznaczane jako błędy.</string>
     <string name="button_reset_prompts_and_library">Resetuj prompty i bibliotekę</string>
     <string name="msg_reset_prompts_and_library_success">Prompty i biblioteka zresetowane</string>
     <string name="button_clear_cache">Wyczyść pamięć podręczną</string>

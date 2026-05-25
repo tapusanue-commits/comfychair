@@ -31,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -75,6 +76,7 @@ import sh.hnet.comfychair.ui.components.GenerationProgressBar
 import sh.hnet.comfychair.ui.components.PromptLibraryDialog
 import sh.hnet.comfychair.ui.components.PromptPresetDialog
 import sh.hnet.comfychair.ui.components.shared.PromptPresetDropdown
+import sh.hnet.comfychair.ui.components.shared.rememberSpellCheckVisualTransformation
 import sh.hnet.comfychair.ui.components.config.ConfigBottomSheetContent
 import sh.hnet.comfychair.ui.components.config.UnifiedCallbacks
 import sh.hnet.comfychair.ui.components.config.toBottomSheetConfig
@@ -114,6 +116,20 @@ fun ImageToVideoScreen(
 
     // Check offline mode
     val isOfflineMode = remember { AppSettings.isOfflineMode(context) }
+    var spellCheckEnabled by remember { mutableStateOf(AppSettings.isPromptSpellCheckEnabled(context)) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                spellCheckEnabled = AppSettings.isPromptSpellCheckEnabled(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    val positivePromptTransformation = rememberSpellCheckVisualTransformation(
+        text = uiState.positivePrompt,
+        enabled = spellCheckEnabled
+    )
 
     var showOptionsSheet by remember { mutableStateOf(false) }
 
@@ -403,6 +419,8 @@ fun ImageToVideoScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             minLines = 2,
             maxLines = 4,
+            keyboardOptions = KeyboardOptions(autoCorrectEnabled = spellCheckEnabled),
+            visualTransformation = positivePromptTransformation,
             leadingIcon = {
                 PromptPresetDropdown(
                     favorites = presetUiState.favorites,
@@ -603,7 +621,8 @@ fun ImageToVideoScreen(
             }
             ConfigBottomSheetContent(
                 config = bottomSheetConfig,
-                workflowName = uiState.selectedWorkflow
+                workflowName = uiState.selectedWorkflow,
+                spellCheckEnabled = spellCheckEnabled
             )
         }
     }

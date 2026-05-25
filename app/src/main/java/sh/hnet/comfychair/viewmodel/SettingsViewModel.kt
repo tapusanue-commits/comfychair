@@ -124,6 +124,9 @@ class SettingsViewModel : ViewModel() {
     private val _edgeRouterId = MutableStateFlow("hermite")
     val edgeRouterId: StateFlow<String> = _edgeRouterId.asStateFlow()
 
+    private val _isPromptSpellCheckEnabled = MutableStateFlow(false)
+    val isPromptSpellCheckEnabled: StateFlow<Boolean> = _isPromptSpellCheckEnabled.asStateFlow()
+
     private val _events = MutableSharedFlow<SettingsEvent>()
     val events: SharedFlow<SettingsEvent> = _events.asSharedFlow()
 
@@ -141,6 +144,7 @@ class SettingsViewModel : ViewModel() {
         _isShowBuiltInWorkflows.value = AppSettings.isShowBuiltInWorkflows(context)
         _isOfflineMode.value = AppSettings.isOfflineMode(context)
         _edgeRouterId.value = AppSettings.getEdgeRouterId(context)
+        _isPromptSpellCheckEnabled.value = AppSettings.isPromptSpellCheckEnabled(context)
 
         // Initialize debug logger with saved state
         DebugLogger.setEnabled(_isDebugLoggingEnabled.value)
@@ -499,6 +503,11 @@ class SettingsViewModel : ViewModel() {
         _edgeRouterId.value = routerId
     }
 
+    fun setPromptSpellCheckEnabled(context: Context, enabled: Boolean) {
+        AppSettings.setPromptSpellCheckEnabled(context, enabled)
+        _isPromptSpellCheckEnabled.value = enabled
+    }
+
     /**
      * Set whether offline mode should be enabled.
      * Offline mode allows browsing cached data without network connectivity.
@@ -701,6 +710,7 @@ class SettingsViewModel : ViewModel() {
         val newShowBuiltInWorkflows = AppSettings.isShowBuiltInWorkflows(context)
         val newOfflineMode = AppSettings.isOfflineMode(context)
         val newEdgeRouterId = AppSettings.getEdgeRouterId(context)
+        val newPromptSpellCheck = AppSettings.isPromptSpellCheckEnabled(context)
 
         // If debug logging was enabled before restore, keep it enabled
         val finalDebugLogging = if (preserveDebugLogging && !restoredDebugLogging) {
@@ -722,6 +732,7 @@ class SettingsViewModel : ViewModel() {
         _isShowBuiltInWorkflows.value = newShowBuiltInWorkflows
         _isOfflineMode.value = newOfflineMode
         _edgeRouterId.value = newEdgeRouterId
+        _isPromptSpellCheckEnabled.value = newPromptSpellCheck
 
         // Update DebugLogger state to match
         DebugLogger.setEnabled(finalDebugLogging)

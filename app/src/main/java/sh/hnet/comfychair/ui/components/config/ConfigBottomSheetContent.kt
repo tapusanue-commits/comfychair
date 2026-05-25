@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import sh.hnet.comfychair.R
 import sh.hnet.comfychair.model.SamplerOptions
 import sh.hnet.comfychair.ui.components.shared.NoOverscrollContainer
+import sh.hnet.comfychair.ui.components.shared.rememberSpellCheckVisualTransformation
 import sh.hnet.comfychair.ui.components.LoraChainEditor
 import sh.hnet.comfychair.ui.components.shared.DimensionStepperRow
 import sh.hnet.comfychair.ui.components.shared.GenericWorkflowDropdown
@@ -49,6 +51,7 @@ import sh.hnet.comfychair.viewmodel.ImageToImageMode
 fun ConfigBottomSheetContent(
     config: BottomSheetConfig,
     workflowName: String,
+    spellCheckEnabled: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     NoOverscrollContainer {
@@ -61,7 +64,7 @@ fun ConfigBottomSheetContent(
         ) {
             // 1. Negative Prompt (at top)
             if (config.prompts.hasNegativePrompt) {
-                NegativePromptSection(config.prompts)
+                NegativePromptSection(config.prompts, spellCheckEnabled)
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
@@ -93,14 +96,20 @@ fun ConfigBottomSheetContent(
 }
 
 @Composable
-private fun NegativePromptSection(prompts: PromptConfig) {
+private fun NegativePromptSection(prompts: PromptConfig, spellCheckEnabled: Boolean) {
+    val transformation = rememberSpellCheckVisualTransformation(
+        text = prompts.negativePrompt,
+        enabled = spellCheckEnabled
+    )
     OutlinedTextField(
         value = prompts.negativePrompt,
         onValueChange = prompts.onNegativePromptChange,
         label = { Text(stringResource(R.string.hint_negative_prompt)) },
         modifier = Modifier.fillMaxWidth(),
         minLines = 2,
-        maxLines = 4
+        maxLines = 4,
+        keyboardOptions = KeyboardOptions(autoCorrectEnabled = spellCheckEnabled),
+        visualTransformation = transformation
     )
 }
 

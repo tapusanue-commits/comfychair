@@ -121,8 +121,8 @@
     <string name="error_gallery_refresh">Failed to refresh gallery</string>
 
     <!-- Language settings -->
-    <string name="title_settings_language">Language</string>
-    <string name="desc_settings_language">Choose your preferred app language</string>
+    <string name="title_settings_language">Language &amp; Spelling</string>
+    <string name="desc_settings_language">Choose your preferred app language and spelling settings</string>
     <string name="language_system_default">System default</string>
     <string name="label_language">App language</string>
     <string name="language_name_en" translatable="false">English</string>
@@ -163,6 +163,8 @@
     <string name="desc_auto_connect">Automatically connect to the last server on app launch</string>
     <string name="label_show_built_in_workflows">Show built-in workflows</string>
     <string name="desc_show_built_in_workflows">Display the default workflows bundled with the app</string>
+    <string name="label_prompt_spell_check">Spell check &amp; autocorrect</string>
+    <string name="desc_prompt_spell_check">Enable spell checking and autocorrect in prompt fields. May flag AI-specific terms as errors.</string>
     <string name="button_reset_prompts_and_library">Reset Prompts and Library</string>
     <string name="msg_reset_prompts_and_library_success">Prompts and library reset</string>
     <string name="button_clear_cache">Clear Cache</string>

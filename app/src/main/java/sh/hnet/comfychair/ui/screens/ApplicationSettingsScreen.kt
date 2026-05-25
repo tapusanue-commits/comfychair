@@ -71,6 +71,7 @@ fun ApplicationSettingsScreen(
     val isShowBuiltInWorkflows by viewModel.isShowBuiltInWorkflows.collectAsState()
     val isOfflineMode by viewModel.isOfflineMode.collectAsState()
     val edgeRouterId by viewModel.edgeRouterId.collectAsState()
+    val isPromptSpellCheckEnabled by viewModel.isPromptSpellCheckEnabled.collectAsState()
 
     // State and effects
     // Backup/restore state
@@ -231,6 +232,31 @@ fun ApplicationSettingsScreen(
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Prompt spell check toggle
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.label_prompt_spell_check),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = stringResource(R.string.desc_prompt_spell_check),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = isPromptSpellCheckEnabled,
+                        onCheckedChange = { viewModel.setPromptSpellCheckEnabled(context, it) }
+                    )
+                }
             }
         }
 
@@ -394,6 +420,7 @@ fun ApplicationSettingsScreen(
                         onCheckedChange = { viewModel.setShowBuiltInWorkflows(context, it) }
                     )
                 }
+
             }
         }
 

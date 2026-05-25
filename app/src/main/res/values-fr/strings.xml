@@ -1,7 +1,7 @@
 <resources>
     <!-- Language settings -->
-    <string name="title_settings_language">Langue</string>
-    <string name="desc_settings_language">Choisissez votre langue préférée</string>
+    <string name="title_settings_language">Langue &amp; orthographe</string>
+    <string name="desc_settings_language">Choisissez votre langue préférée et les paramètres d\'orthographe</string>
     <string name="language_system_default">Par défaut du système</string>
     <string name="label_language">Langue de l\'application</string>
 
@@ -160,6 +160,8 @@
     <string name="desc_auto_connect">Se connecter automatiquement au dernier serveur au lancement de l\'app</string>
     <string name="label_show_built_in_workflows">Afficher les workflows intégrés</string>
     <string name="desc_show_built_in_workflows">Afficher les workflows par défaut fournis avec l\'app</string>
+    <string name="label_prompt_spell_check">Vérification orthographique &amp; autocorrection</string>
+    <string name="desc_prompt_spell_check">Activer la vérification orthographique et l\'autocorrection dans les champs de prompt. Les termes spécifiques à l\'IA peuvent être signalés comme des erreurs.</string>
     <string name="button_reset_prompts_and_library">Réinitialiser les prompts et la bibliothèque</string>
     <string name="msg_reset_prompts_and_library_success">Prompts et bibliothèque réinitialisés</string>
     <string name="button_clear_cache">Vider le cache</string>

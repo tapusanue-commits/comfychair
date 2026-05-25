@@ -17,6 +17,7 @@ object AppSettings {
     private const val KEY_OFFLINE_MODE = "offline_mode"
     private const val KEY_EDGE_ROUTER = "edge_router"
     private const val DEFAULT_EDGE_ROUTER = "hermite"
+    private const val KEY_PROMPT_SPELL_CHECK = "prompt_spell_check"
 
     /**
      * Check if live preview is enabled.
@@ -175,6 +176,23 @@ object AppSettings {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
             .putString(KEY_EDGE_ROUTER, routerId)
+            .apply()
+    }
+
+    /**
+     * Check if spell check and autocorrect are enabled in prompt input fields.
+     * Default is false — AI prompts contain many non-standard tokens that would be
+     * flagged as errors, so the feature is opt-in.
+     */
+    fun isPromptSpellCheckEnabled(context: Context): Boolean {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getBoolean(KEY_PROMPT_SPELL_CHECK, false)
+    }
+
+    fun setPromptSpellCheckEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_PROMPT_SPELL_CHECK, enabled)
             .apply()
     }
 

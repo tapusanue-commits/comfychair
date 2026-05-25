@@ -1,7 +1,7 @@
 <resources>
     <!-- Language settings -->
-    <string name="title_settings_language">Sprache</string>
-    <string name="desc_settings_language">Wähle deine bevorzugte App-Sprache</string>
+    <string name="title_settings_language">Sprache &amp; Rechtschreibung</string>
+    <string name="desc_settings_language">Wähle deine bevorzugte App-Sprache und Rechtschreibeinstellungen</string>
     <string name="language_system_default">Systemstandard</string>
     <string name="label_language">App-Sprache</string>
 
@@ -160,6 +160,8 @@
     <string name="desc_auto_connect">Beim App-Start automatisch mit dem letzten Server verbinden</string>
     <string name="label_show_built_in_workflows">Integrierte Workflows anzeigen</string>
     <string name="desc_show_built_in_workflows">Die mit der App gebündelten Standard-Workflows anzeigen</string>
+    <string name="label_prompt_spell_check">Rechtschreibprüfung &amp; Autokorrektur</string>
+    <string name="desc_prompt_spell_check">Rechtschreibprüfung und Autokorrektur in Prompt-Feldern aktivieren. KI-spezifische Begriffe können als Fehler markiert werden.</string>
     <string name="button_reset_prompts_and_library">Prompts und Bibliothek zurücksetzen</string>
     <string name="msg_reset_prompts_and_library_success">Prompts und Bibliothek zurückgesetzt</string>
     <string name="button_clear_cache">Cache leeren</string>

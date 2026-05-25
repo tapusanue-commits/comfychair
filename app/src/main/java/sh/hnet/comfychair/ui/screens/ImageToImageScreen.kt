@@ -31,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -73,6 +74,7 @@ import sh.hnet.comfychair.ui.components.AppMenuDropdown
 import sh.hnet.comfychair.ui.components.PromptLibraryDialog
 import sh.hnet.comfychair.ui.components.PromptPresetDialog
 import sh.hnet.comfychair.ui.components.shared.PromptPresetDropdown
+import sh.hnet.comfychair.ui.components.shared.rememberSpellCheckVisualTransformation
 import sh.hnet.comfychair.ui.theme.Dimensions
 import sh.hnet.comfychair.storage.AppSettings
 import sh.hnet.comfychair.ui.components.GenerationButton
@@ -137,6 +139,20 @@ fun ImageToImageScreen(
 
     // Check offline mode
     val isOfflineMode = remember { AppSettings.isOfflineMode(context) }
+    var spellCheckEnabled by remember { mutableStateOf(AppSettings.isPromptSpellCheckEnabled(context)) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                spellCheckEnabled = AppSettings.isPromptSpellCheckEnabled(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    val positivePromptTransformation = rememberSpellCheckVisualTransformation(
+        text = uiState.positivePrompt,
+        enabled = spellCheckEnabled
+    )
 
     var showOptionsSheet by remember { mutableStateOf(false) }
 
@@ -418,6 +434,8 @@ fun ImageToImageScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             minLines = 2,
             maxLines = 4,
+            keyboardOptions = KeyboardOptions(autoCorrectEnabled = spellCheckEnabled),
+            visualTransformation = positivePromptTransformation,
             leadingIcon = {
                 PromptPresetDropdown(
                     favorites = presetUiState.favorites,
@@ -682,7 +700,8 @@ fun ImageToImageScreen(
             ConfigBottomSheetContent(
                 config = bottomSheetConfig,
                 workflowName = if (uiState.mode == ImageToImageMode.EDITING)
-                    uiState.selectedEditingWorkflow else uiState.selectedWorkflow
+                    uiState.selectedEditingWorkflow else uiState.selectedWorkflow,
+                spellCheckEnabled = spellCheckEnabled
             )
         }
     }
