@@ -3,7 +3,11 @@ package sh.hnet.comfychair.ui.screens
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,9 +44,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,9 +62,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -117,10 +125,12 @@ fun ImageToVideoScreen(
     // Check offline mode
     val isOfflineMode = remember { AppSettings.isOfflineMode(context) }
     var spellCheckEnabled by remember { mutableStateOf(AppSettings.isPromptSpellCheckEnabled(context)) }
+    var promptExpandEnabled by remember { mutableStateOf(AppSettings.isPromptExpandEnabled(context)) }
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 spellCheckEnabled = AppSettings.isPromptSpellCheckEnabled(context)
+                promptExpandEnabled = AppSettings.isPromptExpandEnabled(context)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -130,6 +140,11 @@ fun ImageToVideoScreen(
         text = uiState.positivePrompt,
         enabled = spellCheckEnabled
     )
+    val imeHeight = WindowInsets.ime.getBottom(LocalDensity.current)
+    var prevImeHeight by remember { mutableStateOf(imeHeight) }
+    SideEffect { prevImeHeight = imeHeight }
+    var promptFocused by remember { mutableStateOf(false) }
+    val expandPrompt = promptExpandEnabled && promptFocused && imeHeight > 0 && imeHeight >= prevImeHeight
 
     var showOptionsSheet by remember { mutableStateOf(false) }
 
@@ -286,127 +301,136 @@ fun ImageToVideoScreen(
             )
         }
 
-        // Preview area
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .heightIn(min = 150.dp)
-                .background(MaterialTheme.colorScheme.surfaceContainer)
-                .clickable(
-                    enabled = (uiState.viewMode == ImageToVideoViewMode.PREVIEW && videoUri != null) ||
-                              (uiState.viewMode == ImageToVideoViewMode.SOURCE && uiState.sourceImage != null),
-                    onClick = {
-                        when (uiState.viewMode) {
-                            ImageToVideoViewMode.PREVIEW -> {
-                                videoUri?.let { uri ->
-                                    val intent = MediaViewerActivity.createSingleVideoIntent(
-                                        context = context,
-                                        videoUri = uri,
-                                        hostname = generationViewModel.getHostname(),
-                                        port = generationViewModel.getPort()
+        // Preview area + view mode toggle — collapse when typing in the prompt field
+        AnimatedVisibility(
+            visible = !expandPrompt,
+            modifier = Modifier.weight(1f),
+            enter = fadeIn(tween(150)),
+            exit = ExitTransition.None
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .heightIn(min = 150.dp)
+                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                        .clickable(
+                            enabled = (uiState.viewMode == ImageToVideoViewMode.PREVIEW && videoUri != null) ||
+                                      (uiState.viewMode == ImageToVideoViewMode.SOURCE && uiState.sourceImage != null),
+                            onClick = {
+                                when (uiState.viewMode) {
+                                    ImageToVideoViewMode.PREVIEW -> {
+                                        videoUri?.let { uri ->
+                                            val intent = MediaViewerActivity.createSingleVideoIntent(
+                                                context = context,
+                                                videoUri = uri,
+                                                hostname = generationViewModel.getHostname(),
+                                                port = generationViewModel.getPort()
+                                            )
+                                            context.startActivity(intent)
+                                        }
+                                    }
+                                    ImageToVideoViewMode.SOURCE -> {
+                                        // Source image is user-provided, no ComfyUI metadata
+                                        uiState.sourceImage?.let { bitmap ->
+                                            val intent = MediaViewerActivity.createSingleImageIntent(context, bitmap)
+                                            context.startActivity(intent)
+                                        }
+                                    }
+                                }
+                            }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    when (uiState.viewMode) {
+                        ImageToVideoViewMode.SOURCE -> {
+                            if (uiState.sourceImage != null) {
+                                Image(
+                                    bitmap = uiState.sourceImage!!.asImageBitmap(),
+                                    contentDescription = stringResource(R.string.tab_source_image),
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                // Placeholder - app logo with tap to upload hint
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.clickable { imagePickerLauncher.launch("image/*") }
+                                ) {
+                                    Image(
+                                        painter = painterResource(R.drawable.ic_comfychair_foreground),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(Dimensions.PlaceholderLogoSize),
+                                        contentScale = ContentScale.Fit
                                     )
-                                    context.startActivity(intent)
-                                }
-                            }
-                            ImageToVideoViewMode.SOURCE -> {
-                                // Source image is user-provided, no ComfyUI metadata
-                                uiState.sourceImage?.let { bitmap ->
-                                    val intent = MediaViewerActivity.createSingleImageIntent(context, bitmap)
-                                    context.startActivity(intent)
+                                    Text(
+                                        text = stringResource(R.string.msg_no_source_image),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
                             }
                         }
-                    }
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            when (uiState.viewMode) {
-                ImageToVideoViewMode.SOURCE -> {
-                    if (uiState.sourceImage != null) {
-                        Image(
-                            bitmap = uiState.sourceImage!!.asImageBitmap(),
-                            contentDescription = stringResource(R.string.tab_source_image),
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        // Placeholder - app logo with tap to upload hint
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.clickable { imagePickerLauncher.launch("image/*") }
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.ic_comfychair_foreground),
-                                contentDescription = null,
-                                modifier = Modifier.size(Dimensions.PlaceholderLogoSize),
-                                contentScale = ContentScale.Fit
-                            )
-                            Text(
-                                text = stringResource(R.string.msg_no_source_image),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        ImageToVideoViewMode.PREVIEW -> {
+                            when {
+                                // Show preview bitmap during generation
+                                uiState.previewBitmap != null -> {
+                                    Image(
+                                        bitmap = uiState.previewBitmap!!.asImageBitmap(),
+                                        contentDescription = stringResource(R.string.content_description_preview),
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                                // Show video player when video is available
+                                videoUri != null -> {
+                                    VideoPlayer(
+                                        videoUri = videoUri,
+                                        modifier = Modifier.fillMaxSize(),
+                                        isActive = isScreenVisible
+                                    )
+                                }
+                                // Show placeholder - app logo
+                                else -> {
+                                    Image(
+                                        painter = painterResource(R.drawable.ic_comfychair_foreground),
+                                        contentDescription = stringResource(R.string.placeholder_video),
+                                        modifier = Modifier.size(Dimensions.PlaceholderLogoSize),
+                                        contentScale = ContentScale.Fit
+                                    )
+                                }
+                            }
                         }
                     }
                 }
-                ImageToVideoViewMode.PREVIEW -> {
-                    when {
-                        // Show preview bitmap during generation
-                        uiState.previewBitmap != null -> {
-                            Image(
-                                bitmap = uiState.previewBitmap!!.asImageBitmap(),
-                                contentDescription = stringResource(R.string.content_description_preview),
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                        // Show video player when video is available
-                        videoUri != null -> {
-                            VideoPlayer(
-                                videoUri = videoUri,
-                                modifier = Modifier.fillMaxSize(),
-                                isActive = isScreenVisible
-                            )
-                        }
-                        // Show placeholder - app logo
-                        else -> {
-                            Image(
-                                painter = painterResource(R.drawable.ic_comfychair_foreground),
-                                contentDescription = stringResource(R.string.placeholder_video),
-                                modifier = Modifier.size(Dimensions.PlaceholderLogoSize),
-                                contentScale = ContentScale.Fit
-                            )
-                        }
+
+                // View mode toggle
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp)
+                ) {
+                    SegmentedButton(
+                        selected = uiState.viewMode == ImageToVideoViewMode.SOURCE,
+                        onClick = { imageToVideoViewModel.onViewModeChange(ImageToVideoViewMode.SOURCE) },
+                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+                    ) {
+                        Text(stringResource(R.string.tab_source_image))
+                    }
+                    SegmentedButton(
+                        selected = uiState.viewMode == ImageToVideoViewMode.PREVIEW,
+                        onClick = { imageToVideoViewModel.onViewModeChange(ImageToVideoViewMode.PREVIEW) },
+                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+                    ) {
+                        Text(stringResource(R.string.tab_preview))
                     }
                 }
             }
         }
 
-        // View mode toggle
-        SingleChoiceSegmentedButtonRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp)
-        ) {
-            SegmentedButton(
-                selected = uiState.viewMode == ImageToVideoViewMode.SOURCE,
-                onClick = { imageToVideoViewModel.onViewModeChange(ImageToVideoViewMode.SOURCE) },
-                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
-            ) {
-                Text(stringResource(R.string.tab_source_image))
-            }
-            SegmentedButton(
-                selected = uiState.viewMode == ImageToVideoViewMode.PREVIEW,
-                onClick = { imageToVideoViewModel.onViewModeChange(ImageToVideoViewMode.PREVIEW) },
-                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
-            ) {
-                Text(stringResource(R.string.tab_preview))
-            }
-        }
-
-        // Prompt Input
+        // Prompt Input — expands to fill screen above keyboard when focused
         OutlinedTextField(
             value = uiState.positivePrompt,
             onValueChange = {
@@ -416,9 +440,11 @@ fun ImageToVideoScreen(
             label = { Text(stringResource(R.string.hint_prompt)) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .then(if (expandPrompt) Modifier.weight(1f) else Modifier)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .onFocusChanged { promptFocused = it.isFocused },
             minLines = 2,
-            maxLines = 4,
+            maxLines = if (expandPrompt) Int.MAX_VALUE else 4,
             keyboardOptions = KeyboardOptions(autoCorrectEnabled = spellCheckEnabled),
             visualTransformation = positivePromptTransformation,
             leadingIcon = {

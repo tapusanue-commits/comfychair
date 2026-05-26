@@ -214,6 +214,7 @@ class BackupManager(private val context: Context) {
             put("debugLoggingEnabled", prefs.getBoolean("debug_logging_enabled", false))
             put("showBuiltInWorkflows", prefs.getBoolean("show_built_in_workflows", true))
             put("promptSpellCheckEnabled", prefs.getBoolean("prompt_spell_check", false))
+            put("promptExpandEnabled", prefs.getBoolean("prompt_expand", false))
         }
     }
 
@@ -362,6 +363,9 @@ class BackupManager(private val context: Context) {
         }
         if (json.has("promptSpellCheckEnabled")) {
             editor.putBoolean("prompt_spell_check", json.optBoolean("promptSpellCheckEnabled", false))
+        }
+        if (json.has("promptExpandEnabled")) {
+            editor.putBoolean("prompt_expand", json.optBoolean("promptExpandEnabled", false))
         }
 
         editor.apply()

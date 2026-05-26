@@ -162,6 +162,8 @@
     <string name="desc_show_built_in_workflows">显示应用程序自带的默认工作流</string>
     <string name="label_prompt_spell_check">拼写检查与自动更正</string>
     <string name="desc_prompt_spell_check">在提示词输入框中启用拼写检查和自动更正。AI专用术语可能被标记为错误。</string>
+    <string name="label_prompt_expand">输入时展开提示词输入框</string>
+    <string name="desc_prompt_expand">获得焦点时，提示词输入框将填满键盘上方的屏幕空间。关闭键盘前预览将被隐藏。</string>
     <string name="button_reset_prompts_and_library">重置提示词和库</string>
     <string name="msg_reset_prompts_and_library_success">提示词和库已重置</string>
     <string name="button_clear_cache">清空缓存</string>

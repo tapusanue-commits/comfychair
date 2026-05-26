@@ -1,7 +1,11 @@
 package sh.hnet.comfychair.ui.screens
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,9 +38,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,9 +51,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -133,10 +141,12 @@ fun TextToImageScreen(
     // Check offline mode
     val isOfflineMode = remember { AppSettings.isOfflineMode(context) }
     var spellCheckEnabled by remember { mutableStateOf(AppSettings.isPromptSpellCheckEnabled(context)) }
+    var promptExpandEnabled by remember { mutableStateOf(AppSettings.isPromptExpandEnabled(context)) }
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 spellCheckEnabled = AppSettings.isPromptSpellCheckEnabled(context)
+                promptExpandEnabled = AppSettings.isPromptExpandEnabled(context)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -146,6 +156,11 @@ fun TextToImageScreen(
         text = uiState.positivePrompt,
         enabled = spellCheckEnabled
     )
+    val imeHeight = WindowInsets.ime.getBottom(LocalDensity.current)
+    var prevImeHeight by remember { mutableStateOf(imeHeight) }
+    SideEffect { prevImeHeight = imeHeight }
+    var promptFocused by remember { mutableStateOf(false) }
+    val expandPrompt = promptExpandEnabled && promptFocused && imeHeight > 0 && imeHeight >= prevImeHeight
 
     // Fetch models when connected
     LaunchedEffect(connectionStatus) {
@@ -253,50 +268,55 @@ fun TextToImageScreen(
             )
         }
 
-        // Image Preview Area
-        // Only allow tapping final generated image, not live previews during generation
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .heightIn(min = 150.dp)
-                .background(MaterialTheme.colorScheme.surfaceContainer)
-                .clickable(enabled = uiState.previewBitmap != null && !isThisScreenExecuting) {
-                    // Launch MediaViewer for single image
-                    uiState.previewBitmap?.let { bitmap ->
-                        val intent = MediaViewerActivity.createSingleImageIntent(
-                            context = context,
-                            bitmap = bitmap,
-                            hostname = generationViewModel.getHostname(),
-                            port = generationViewModel.getPort(),
-                            filename = uiState.currentImageFilename,
-                            subfolder = uiState.currentImageSubfolder,
-                            type = uiState.currentImageType
-                        )
-                        context.startActivity(intent)
-                    }
-                },
-            contentAlignment = Alignment.Center
+        // Image Preview Area — collapses when typing in the prompt field
+        AnimatedVisibility(
+            visible = !expandPrompt,
+            modifier = Modifier.weight(1f),
+            enter = fadeIn(tween(150)),
+            exit = ExitTransition.None
         ) {
-            if (uiState.previewBitmap != null) {
-                Image(
-                    bitmap = uiState.previewBitmap!!.asImageBitmap(),
-                    contentDescription = stringResource(R.string.content_description_generated_image),
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                // Placeholder - app logo
-                Image(
-                    painter = painterResource(R.drawable.ic_comfychair_foreground),
-                    contentDescription = null,
-                    modifier = Modifier.size(Dimensions.PlaceholderLogoSize),
-                    contentScale = ContentScale.Fit
-                )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .heightIn(min = 150.dp)
+                    .background(MaterialTheme.colorScheme.surfaceContainer)
+                    .clickable(enabled = uiState.previewBitmap != null && !isThisScreenExecuting) {
+                        // Launch MediaViewer for single image
+                        uiState.previewBitmap?.let { bitmap ->
+                            val intent = MediaViewerActivity.createSingleImageIntent(
+                                context = context,
+                                bitmap = bitmap,
+                                hostname = generationViewModel.getHostname(),
+                                port = generationViewModel.getPort(),
+                                filename = uiState.currentImageFilename,
+                                subfolder = uiState.currentImageSubfolder,
+                                type = uiState.currentImageType
+                            )
+                            context.startActivity(intent)
+                        }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                if (uiState.previewBitmap != null) {
+                    Image(
+                        bitmap = uiState.previewBitmap!!.asImageBitmap(),
+                        contentDescription = stringResource(R.string.content_description_generated_image),
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    // Placeholder - app logo
+                    Image(
+                        painter = painterResource(R.drawable.ic_comfychair_foreground),
+                        contentDescription = null,
+                        modifier = Modifier.size(Dimensions.PlaceholderLogoSize),
+                        contentScale = ContentScale.Fit
+                    )
+                }
             }
         }
 
-        // Prompt Input
+        // Prompt Input — expands to fill screen above keyboard when focused
         OutlinedTextField(
             value = uiState.positivePrompt,
             onValueChange = {
@@ -306,9 +326,11 @@ fun TextToImageScreen(
             label = { Text(stringResource(R.string.hint_prompt)) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .then(if (expandPrompt) Modifier.weight(1f) else Modifier)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .onFocusChanged { promptFocused = it.isFocused },
             minLines = 2,
-            maxLines = 4,
+            maxLines = if (expandPrompt) Int.MAX_VALUE else 4,
             keyboardOptions = KeyboardOptions(autoCorrectEnabled = spellCheckEnabled),
             visualTransformation = positivePromptTransformation,
             leadingIcon = {

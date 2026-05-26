@@ -2,7 +2,11 @@ package sh.hnet.comfychair.ui.screens
 
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -40,9 +44,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,9 +58,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -140,10 +148,12 @@ fun ImageToImageScreen(
     // Check offline mode
     val isOfflineMode = remember { AppSettings.isOfflineMode(context) }
     var spellCheckEnabled by remember { mutableStateOf(AppSettings.isPromptSpellCheckEnabled(context)) }
+    var promptExpandEnabled by remember { mutableStateOf(AppSettings.isPromptExpandEnabled(context)) }
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 spellCheckEnabled = AppSettings.isPromptSpellCheckEnabled(context)
+                promptExpandEnabled = AppSettings.isPromptExpandEnabled(context)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -153,6 +163,11 @@ fun ImageToImageScreen(
         text = uiState.positivePrompt,
         enabled = spellCheckEnabled
     )
+    val imeHeight = WindowInsets.ime.getBottom(LocalDensity.current)
+    var prevImeHeight by remember { mutableStateOf(imeHeight) }
+    SideEffect { prevImeHeight = imeHeight }
+    var promptFocused by remember { mutableStateOf(false) }
+    val expandPrompt = promptExpandEnabled && promptFocused && imeHeight > 0 && imeHeight >= prevImeHeight
 
     var showOptionsSheet by remember { mutableStateOf(false) }
 
@@ -298,130 +313,138 @@ fun ImageToImageScreen(
             )
         }
 
-        // Image Preview Area
-        // Only allow tapping final generated image or source image, not live previews during generation
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .heightIn(min = 150.dp)
-                .background(MaterialTheme.colorScheme.surfaceContainer)
-                .clickable(
-                    enabled = (uiState.viewMode == ImageToImageViewMode.PREVIEW && uiState.previewImage != null && !isThisScreenExecuting) ||
-                              (uiState.viewMode == ImageToImageViewMode.SOURCE && uiState.sourceImage != null),
-                    onClick = {
-                        when (uiState.viewMode) {
-                            ImageToImageViewMode.PREVIEW -> {
-                                // Launch MediaViewer for generated image
-                                uiState.previewImage?.let { bitmap ->
-                                    val intent = MediaViewerActivity.createSingleImageIntent(
-                                        context = context,
-                                        bitmap = bitmap,
-                                        hostname = generationViewModel.getHostname(),
-                                        port = generationViewModel.getPort(),
-                                        filename = uiState.previewImageFilename,
-                                        subfolder = uiState.previewImageSubfolder,
-                                        type = uiState.previewImageType
+        // Image Preview Area + view mode toggle — collapse when typing in the prompt field
+        AnimatedVisibility(
+            visible = !expandPrompt,
+            modifier = Modifier.weight(1f),
+            enter = fadeIn(tween(150)),
+            exit = ExitTransition.None
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .heightIn(min = 150.dp)
+                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                        .clickable(
+                            enabled = (uiState.viewMode == ImageToImageViewMode.PREVIEW && uiState.previewImage != null && !isThisScreenExecuting) ||
+                                      (uiState.viewMode == ImageToImageViewMode.SOURCE && uiState.sourceImage != null),
+                            onClick = {
+                                when (uiState.viewMode) {
+                                    ImageToImageViewMode.PREVIEW -> {
+                                        // Launch MediaViewer for generated image
+                                        uiState.previewImage?.let { bitmap ->
+                                            val intent = MediaViewerActivity.createSingleImageIntent(
+                                                context = context,
+                                                bitmap = bitmap,
+                                                hostname = generationViewModel.getHostname(),
+                                                port = generationViewModel.getPort(),
+                                                filename = uiState.previewImageFilename,
+                                                subfolder = uiState.previewImageSubfolder,
+                                                type = uiState.previewImageType
+                                            )
+                                            context.startActivity(intent)
+                                        }
+                                    }
+                                    ImageToImageViewMode.SOURCE -> {
+                                        // Launch MediaViewer for source image (without mask)
+                                        uiState.sourceImage?.let { bitmap ->
+                                            val intent = MediaViewerActivity.createSingleImageIntent(context, bitmap)
+                                            context.startActivity(intent)
+                                        }
+                                    }
+                                }
+                            }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    when (uiState.viewMode) {
+                        ImageToImageViewMode.SOURCE -> {
+                            if (uiState.sourceImage != null) {
+                                if (uiState.mode == ImageToImageMode.INPAINTING) {
+                                    // Read-only preview of source image with mask overlay
+                                    MaskPreview(
+                                        sourceImage = uiState.sourceImage,
+                                        maskPaths = uiState.maskPaths,
+                                        modifier = Modifier.fillMaxSize()
                                     )
-                                    context.startActivity(intent)
+                                } else {
+                                    // Editing mode: show plain source image without mask
+                                    Image(
+                                        bitmap = uiState.sourceImage!!.asImageBitmap(),
+                                        contentDescription = stringResource(R.string.content_description_source_image),
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
                                 }
-                            }
-                            ImageToImageViewMode.SOURCE -> {
-                                // Launch MediaViewer for source image (without mask)
-                                uiState.sourceImage?.let { bitmap ->
-                                    val intent = MediaViewerActivity.createSingleImageIntent(context, bitmap)
-                                    context.startActivity(intent)
+                            } else {
+                                // Placeholder - app logo
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.clickable { imagePickerLauncher.launch("image/*") }
+                                ) {
+                                    Image(
+                                        painter = painterResource(R.drawable.ic_comfychair_foreground),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(Dimensions.PlaceholderLogoSize),
+                                        contentScale = ContentScale.Fit
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.msg_no_source_image),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
                             }
                         }
-                    }
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            when (uiState.viewMode) {
-                ImageToImageViewMode.SOURCE -> {
-                    if (uiState.sourceImage != null) {
-                        if (uiState.mode == ImageToImageMode.INPAINTING) {
-                            // Read-only preview of source image with mask overlay
-                            MaskPreview(
-                                sourceImage = uiState.sourceImage,
-                                maskPaths = uiState.maskPaths,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        } else {
-                            // Editing mode: show plain source image without mask
-                            Image(
-                                bitmap = uiState.sourceImage!!.asImageBitmap(),
-                                contentDescription = stringResource(R.string.content_description_source_image),
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                    } else {
+                        ImageToImageViewMode.PREVIEW -> {
+                            if (uiState.previewImage != null) {
+                                Image(
+                                    bitmap = uiState.previewImage!!.asImageBitmap(),
+                                    contentDescription = stringResource(R.string.content_description_preview),
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
                         // Placeholder - app logo
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.clickable { imagePickerLauncher.launch("image/*") }
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.ic_comfychair_foreground),
-                                contentDescription = null,
-                                modifier = Modifier.size(Dimensions.PlaceholderLogoSize),
-                                contentScale = ContentScale.Fit
-                            )
-                            Text(
-                                text = stringResource(R.string.msg_no_source_image),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                                Image(
+                                    painter = painterResource(R.drawable.ic_comfychair_foreground),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(Dimensions.PlaceholderLogoSize),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
                         }
                     }
                 }
-                ImageToImageViewMode.PREVIEW -> {
-                    if (uiState.previewImage != null) {
-                        Image(
-                            bitmap = uiState.previewImage!!.asImageBitmap(),
-                            contentDescription = stringResource(R.string.content_description_preview),
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        // Placeholder - app logo
-                        Image(
-                            painter = painterResource(R.drawable.ic_comfychair_foreground),
-                            contentDescription = null,
-                            modifier = Modifier.size(Dimensions.PlaceholderLogoSize),
-                            contentScale = ContentScale.Fit
-                        )
+
+                // View mode toggle
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp)
+                ) {
+                    SegmentedButton(
+                        selected = uiState.viewMode == ImageToImageViewMode.SOURCE,
+                        onClick = { imageToImageViewModel.onViewModeChange(ImageToImageViewMode.SOURCE) },
+                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+                    ) {
+                        Text(stringResource(R.string.tab_source_image))
+                    }
+                    SegmentedButton(
+                        selected = uiState.viewMode == ImageToImageViewMode.PREVIEW,
+                        onClick = { imageToImageViewModel.onViewModeChange(ImageToImageViewMode.PREVIEW) },
+                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+                    ) {
+                        Text(stringResource(R.string.tab_preview))
                     }
                 }
             }
         }
 
-        // View mode toggle
-        SingleChoiceSegmentedButtonRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp)
-        ) {
-            SegmentedButton(
-                selected = uiState.viewMode == ImageToImageViewMode.SOURCE,
-                onClick = { imageToImageViewModel.onViewModeChange(ImageToImageViewMode.SOURCE) },
-                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
-            ) {
-                Text(stringResource(R.string.tab_source_image))
-            }
-            SegmentedButton(
-                selected = uiState.viewMode == ImageToImageViewMode.PREVIEW,
-                onClick = { imageToImageViewModel.onViewModeChange(ImageToImageViewMode.PREVIEW) },
-                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
-            ) {
-                Text(stringResource(R.string.tab_preview))
-            }
-        }
-
-        // Prompt Input
+        // Prompt Input — expands to fill screen above keyboard when focused
         OutlinedTextField(
             value = uiState.positivePrompt,
             onValueChange = {
@@ -431,9 +454,11 @@ fun ImageToImageScreen(
             label = { Text(stringResource(R.string.hint_prompt)) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .then(if (expandPrompt) Modifier.weight(1f) else Modifier)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .onFocusChanged { promptFocused = it.isFocused },
             minLines = 2,
-            maxLines = 4,
+            maxLines = if (expandPrompt) Int.MAX_VALUE else 4,
             keyboardOptions = KeyboardOptions(autoCorrectEnabled = spellCheckEnabled),
             visualTransformation = positivePromptTransformation,
             leadingIcon = {

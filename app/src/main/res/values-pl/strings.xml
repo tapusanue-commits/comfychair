@@ -162,6 +162,8 @@
     <string name="desc_show_built_in_workflows">Wyświetlaj domyślne przepływy pracy dołączone do aplikacji</string>
     <string name="label_prompt_spell_check">Sprawdzanie pisowni i autokorekta</string>
     <string name="desc_prompt_spell_check">Włącz sprawdzanie pisowni i autokorektę w polach promptu. Terminy specyficzne dla AI mogą być oznaczane jako błędy.</string>
+    <string name="label_prompt_expand">Rozwijaj pole promptu podczas pisania</string>
+    <string name="desc_prompt_expand">Po uaktywnieniu pole promptu wypełnia ekran nad klawiaturą. Podgląd jest ukryty do momentu schowania klawiatury.</string>
     <string name="button_reset_prompts_and_library">Resetuj prompty i bibliotekę</string>
     <string name="msg_reset_prompts_and_library_success">Prompty i biblioteka zresetowane</string>
     <string name="button_clear_cache">Wyczyść pamięć podręczną</string>
