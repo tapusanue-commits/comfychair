@@ -557,13 +557,13 @@ private fun buildEditingModeParameterConfig(
         ),
         sampler = DropdownField(
             selectedValue = state.editingSampler,
-            options = SamplerOptions.SAMPLERS,
+            options = state.availableSamplers.ifEmpty { SamplerOptions.SAMPLERS },
             onValueChange = callbacks.onEditingSamplerChange ?: noOpString,
             isVisible = caps.hasSamplerName
         ),
         scheduler = DropdownField(
             selectedValue = state.editingScheduler,
-            options = SamplerOptions.SCHEDULERS,
+            options = state.availableSchedulers.ifEmpty { SamplerOptions.SCHEDULERS },
             onValueChange = callbacks.onEditingSchedulerChange ?: noOpString,
             isVisible = caps.hasScheduler
         ),

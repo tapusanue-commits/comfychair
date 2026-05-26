@@ -166,14 +166,14 @@ internal fun buildCommonParameterConfig(
 
         sampler = DropdownField(
             selectedValue = state.sampler,
-            options = SamplerOptions.SAMPLERS,
+            options = state.availableSamplers.ifEmpty { SamplerOptions.SAMPLERS },
             onValueChange = callbacks.onSamplerChange ?: noOpString,
             isVisible = caps.hasSamplerName
         ),
 
         scheduler = DropdownField(
             selectedValue = state.scheduler,
-            options = SamplerOptions.SCHEDULERS,
+            options = state.availableSchedulers.ifEmpty { SamplerOptions.SCHEDULERS },
             onValueChange = callbacks.onSchedulerChange ?: noOpString,
             isVisible = caps.hasScheduler
         ),

@@ -123,6 +123,8 @@ data class ImageToImageUiState(
     override val availableUpscaleMethods: List<String> = emptyList(),
     override val availableTextEncoders: List<String> = emptyList(),
     override val availableLatentUpscaleModels: List<String> = emptyList(),
+    override val availableSamplers: List<String> = emptyList(),
+    override val availableSchedulers: List<String> = emptyList(),
 
     // Inpainting mode - unified model selections (visibility driven by capabilities)
     override val selectedCheckpoint: String = "",
@@ -368,6 +370,8 @@ class ImageToImageViewModel : BaseGenerationViewModel<ImageToImageUiState, Image
                         availableLoras = cache.loras,
                         availableTextEncoders = cache.textEncoders,
                         availableLatentUpscaleModels = cache.latentUpscaleModels,
+                        availableSamplers = cache.samplers,
+                        availableSchedulers = cache.schedulers,
                         // Apply validated model selections
                         selectedCheckpoint = checkpoint,
                         selectedUnet = unet,

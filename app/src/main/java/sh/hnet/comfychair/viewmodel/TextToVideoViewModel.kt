@@ -81,6 +81,8 @@ data class TextToVideoUiState(
     override val availableUpscaleMethods: List<String> = emptyList(),
     override val availableTextEncoders: List<String> = emptyList(),
     override val availableLatentUpscaleModels: List<String> = emptyList(),
+    override val availableSamplers: List<String> = emptyList(),
+    override val availableSchedulers: List<String> = emptyList(),
 
     // Workflow-specific filtered options (from actual node type in workflow)
     override val filteredCheckpoints: List<String>? = null,
@@ -241,6 +243,8 @@ class TextToVideoViewModel : BaseGenerationViewModel<TextToVideoUiState, TextToV
                         availableClips = cache.clips,
                         availableTextEncoders = cache.textEncoders,
                         availableLatentUpscaleModels = cache.latentUpscaleModels,
+                        availableSamplers = cache.samplers,
+                        availableSchedulers = cache.schedulers,
                         // Single-model selections
                         selectedCheckpoint = checkpoint,
                         selectedUnet = unet,

@@ -1064,6 +1064,12 @@ object ConnectionManager {
             latentUpscaleModels = nodeTypeRegistry.getOptionsForNodeInput(
                 "LatentUpscaleModelLoader",
                 TemplateKeyRegistry.getJsonKeyForPlaceholder("latent_upscale_model")
+            ),
+            samplers = nodeTypeRegistry.getOptionsForField(
+                TemplateKeyRegistry.getJsonKeyForPlaceholder("sampler_name")
+            ),
+            schedulers = nodeTypeRegistry.getOptionsForField(
+                TemplateKeyRegistry.getJsonKeyForPlaceholder("scheduler")
             )
         )
     }

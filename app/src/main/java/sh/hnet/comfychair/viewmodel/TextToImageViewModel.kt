@@ -126,6 +126,8 @@ data class TextToImageUiState(
     override val availableUpscaleMethods: List<String> = emptyList(),
     override val availableTextEncoders: List<String> = emptyList(),
     override val availableLatentUpscaleModels: List<String> = emptyList(),
+    override val availableSamplers: List<String> = emptyList(),
+    override val availableSchedulers: List<String> = emptyList(),
 
     // Workflow-specific filtered options (from actual node type)
     override val filteredCheckpoints: List<String>? = null,
@@ -229,6 +231,8 @@ class TextToImageViewModel : BaseGenerationViewModel<TextToImageUiState, TextToI
                         availableUpscaleMethods = cache.upscaleMethods,
                         availableTextEncoders = cache.textEncoders,
                         availableLatentUpscaleModels = cache.latentUpscaleModels,
+                        availableSamplers = cache.samplers,
+                        availableSchedulers = cache.schedulers,
                         isLoadingModels = cache.isLoading,
                         modelsLoaded = cache.isLoaded,
                         // Apply validated model selections

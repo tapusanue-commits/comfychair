@@ -39,6 +39,8 @@ interface CommonGenerationState {
     val availableTextEncoders: List<String>
     val availableLatentUpscaleModels: List<String>
     val availableUpscaleMethods: List<String>
+    val availableSamplers: List<String>
+    val availableSchedulers: List<String>
 
     // Workflow-filtered model options
     val filteredCheckpoints: List<String>?
