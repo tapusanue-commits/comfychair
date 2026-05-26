@@ -66,7 +66,11 @@ import sh.hnet.comfychair.R
 import sh.hnet.comfychair.connection.ConnectionManager
 import sh.hnet.comfychair.model.SamplerOptions
 import sh.hnet.comfychair.ui.components.shared.ExpandableTooltip
+import sh.hnet.comfychair.ui.components.shared.HierarchicalTreeItems
 import sh.hnet.comfychair.ui.components.shared.ModelPathText
+import sh.hnet.comfychair.ui.components.shared.buildModelTree
+import sh.hnet.comfychair.ui.components.shared.folderPathOf
+import sh.hnet.comfychair.ui.components.shared.modelTreeHasFolders
 import sh.hnet.comfychair.ui.components.shared.NumericStepperField
 import sh.hnet.comfychair.ui.components.shared.TooltipLabel
 import sh.hnet.comfychair.util.DebugLogger
@@ -475,10 +479,17 @@ private fun EnumEditor(
     var expanded by remember { mutableStateOf(false) }
     var tooltipExpanded by remember { mutableStateOf(false) }
 
+    val tree = remember(options) { buildModelTree(options) }
+    val hasFolders = remember(tree) { modelTreeHasFolders(tree) }
+    var expandedPath by remember(value) { mutableStateOf(folderPathOf(value)) }
+
     Column {
         ExposedDropdownMenuBox(
             expanded = expanded,
-            onExpandedChange = { expanded = it }
+            onExpandedChange = {
+                expanded = it
+                if (it) expandedPath = folderPathOf(value)
+            }
         ) {
             OutlinedTextField(
                 value = value,
@@ -506,16 +517,30 @@ private fun EnumEditor(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                options.forEach { option ->
-                    key(option) {
-                        DropdownMenuItem(
-                            text = { ModelPathText(option) },
-                            onClick = {
-                                onValueChange(option)
-                                expanded = false
-                            }
-                        )
+                if (!hasFolders) {
+                    options.forEach { option ->
+                        key(option) {
+                            DropdownMenuItem(
+                                text = { ModelPathText(option) },
+                                onClick = {
+                                    onValueChange(option)
+                                    expanded = false
+                                }
+                            )
+                        }
                     }
+                } else {
+                    HierarchicalTreeItems(
+                        nodes = tree,
+                        expandedPath = expandedPath,
+                        selectedValue = value,
+                        depth = 0,
+                        onExpandFolder = { expandedPath = it },
+                        onSelectModel = {
+                            onValueChange(it)
+                            expanded = false
+                        }
+                    )
                 }
             }
         }
