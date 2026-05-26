@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AirplanemodeInactive
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -58,6 +59,7 @@ fun ConnectionSplitButton(
     hasSelectedServer: Boolean,
     isOfflineMode: Boolean = false,
     onConnect: () -> Unit,
+    onGoOnline: () -> Unit,
     onAddServer: () -> Unit,
     onEditServer: () -> Unit,
     onRemoveServer: () -> Unit,
@@ -124,11 +126,12 @@ fun ConnectionSplitButton(
             label = "dropdown icon rotation"
         )
 
-        Box(modifier = Modifier.wrapContentWidth(unbounded = true)) {
+        if (isOfflineMode) {
+            // In offline mode: trailing button switches back to online (no dropdown)
             SplitButtonDefaults.ElevatedTrailingButton(
-                checked = showMenu,
-                onCheckedChange = { if (trailingEnabled) showMenu = it },
-                enabled = trailingEnabled,
+                checked = false,
+                onCheckedChange = { onGoOnline() },
+                enabled = true,
                 colors = ButtonDefaults.elevatedButtonColors(
                     containerColor = containerColor,
                     contentColor = contentColor
@@ -136,76 +139,95 @@ fun ConnectionSplitButton(
                 modifier = Modifier.size(56.dp)
             ) {
                 Icon(
-                    Icons.Default.KeyboardArrowDown,
-                    contentDescription = stringResource(R.string.content_description_server_menu),
-                    modifier = Modifier.rotate(iconRotation)
+                    Icons.Default.AirplanemodeInactive,
+                    contentDescription = stringResource(R.string.button_go_online)
                 )
             }
-
-            DropdownMenu(
-                expanded = showMenu,
-                onDismissRequest = { showMenu = false }
-            ) {
-                // Add server
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.button_server_add)) },
-                    onClick = {
-                        showMenu = false
-                        onAddServer()
-                    },
-                    leadingIcon = {
-                        Icon(Icons.Default.Add, contentDescription = null)
-                    }
-                )
-
-                // Edit server (only enabled if a server is selected)
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            stringResource(R.string.button_server_edit),
-                            color = if (hasSelectedServer)
-                                MenuDefaults.itemColors().textColor
-                            else
-                                MenuDefaults.itemColors().disabledTextColor
-                        )
-                    },
-                    onClick = {
-                        showMenu = false
-                        onEditServer()
-                    },
-                    enabled = hasSelectedServer,
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.Edit,
-                            contentDescription = null,
-                            tint = if (hasSelectedServer)
-                                MenuDefaults.itemColors().leadingIconColor
-                            else
-                                MenuDefaults.itemColors().disabledLeadingIconColor
-                        )
-                    }
-                )
-
-                // Divider before destructive action
-                HorizontalDivider()
-
-                // Remove server (destructive, error color)
-                val removeColor = if (hasSelectedServer) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MenuDefaults.itemColors().disabledTextColor
+        } else {
+            // Normal mode: trailing button opens server management dropdown
+            Box(modifier = Modifier.wrapContentWidth(unbounded = true)) {
+                SplitButtonDefaults.ElevatedTrailingButton(
+                    checked = showMenu,
+                    onCheckedChange = { if (trailingEnabled) showMenu = it },
+                    enabled = trailingEnabled,
+                    colors = ButtonDefaults.elevatedButtonColors(
+                        containerColor = containerColor,
+                        contentColor = contentColor
+                    ),
+                    modifier = Modifier.size(56.dp)
+                ) {
+                    Icon(
+                        Icons.Default.KeyboardArrowDown,
+                        contentDescription = stringResource(R.string.content_description_server_menu),
+                        modifier = Modifier.rotate(iconRotation)
+                    )
                 }
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.button_server_delete), color = removeColor) },
-                    onClick = {
-                        showMenu = false
-                        onRemoveServer()
-                    },
-                    enabled = hasSelectedServer,
-                    leadingIcon = {
-                        Icon(Icons.Default.Delete, contentDescription = null, tint = removeColor)
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    // Add server
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.button_server_add)) },
+                        onClick = {
+                            showMenu = false
+                            onAddServer()
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Default.Add, contentDescription = null)
+                        }
+                    )
+
+                    // Edit server (only enabled if a server is selected)
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                stringResource(R.string.button_server_edit),
+                                color = if (hasSelectedServer)
+                                    MenuDefaults.itemColors().textColor
+                                else
+                                    MenuDefaults.itemColors().disabledTextColor
+                            )
+                        },
+                        onClick = {
+                            showMenu = false
+                            onEditServer()
+                        },
+                        enabled = hasSelectedServer,
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = null,
+                                tint = if (hasSelectedServer)
+                                    MenuDefaults.itemColors().leadingIconColor
+                                else
+                                    MenuDefaults.itemColors().disabledLeadingIconColor
+                            )
+                        }
+                    )
+
+                    // Divider before destructive action
+                    HorizontalDivider()
+
+                    // Remove server (destructive, error color)
+                    val removeColor = if (hasSelectedServer) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MenuDefaults.itemColors().disabledTextColor
                     }
-                )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.button_server_delete), color = removeColor) },
+                        onClick = {
+                            showMenu = false
+                            onRemoveServer()
+                        },
+                        enabled = hasSelectedServer,
+                        leadingIcon = {
+                            Icon(Icons.Default.Delete, contentDescription = null, tint = removeColor)
+                        }
+                    )
+                }
             }
         }
     }

@@ -545,6 +545,10 @@ fun LoginScreen() {
                     }
                 }
             },
+            onGoOnline = {
+                AppSettings.setOfflineMode(context, false)
+                isOfflineMode = false
+            },
             onAddServer = {
                 serverToEdit = null
                 showServerDialog = true

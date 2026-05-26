@@ -61,6 +61,7 @@
     <string name="msg_offline_prompt">Cannot connect to the server. Would you like to continue in offline mode using cached data?</string>
     <string name="button_offline_prompt_confirm">Go Offline</string>
     <string name="button_offline_prompt_dismiss">Cancel</string>
+    <string name="button_go_online">Go Online</string>
 
     <!-- Validation error messages -->
     <string name="error_required">Required</string>

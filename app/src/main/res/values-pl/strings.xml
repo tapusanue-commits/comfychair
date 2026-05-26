@@ -68,6 +68,7 @@
     <string name="msg_offline_prompt">Nie można połączyć się z serwerem. Czy chcesz kontynuować w trybie offline, używając danych z pamięci podręcznej?</string>
     <string name="button_offline_prompt_confirm">Tryb offline</string>
     <string name="button_offline_prompt_dismiss">Anuluj</string>
+    <string name="button_go_online">Przejdź do trybu online</string>
     <string name="content_description_not_cached">Niedostępne offline</string>
     <string name="label_offline_mode">Tryb offline</string>
     <string name="desc_offline_mode">Przeglądaj dane z pamięci podręcznej bez połączenia sieciowego</string>

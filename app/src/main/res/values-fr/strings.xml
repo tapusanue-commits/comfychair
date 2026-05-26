@@ -68,6 +68,7 @@
     <string name="msg_offline_prompt">Impossible de se connecter au serveur. Voulez-vous continuer en mode hors ligne avec les données mises en cache ?</string>
     <string name="button_offline_prompt_confirm">Mode hors ligne</string>
     <string name="button_offline_prompt_dismiss">Annuler</string>
+    <string name="button_go_online">Passer en ligne</string>
     <string name="content_description_not_cached">Non disponible hors ligne</string>
     <string name="label_offline_mode">Mode hors ligne</string>
     <string name="desc_offline_mode">Parcourir les données mises en cache sans connexion réseau</string>

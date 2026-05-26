@@ -68,6 +68,7 @@
     <string name="msg_offline_prompt">No se puede conectar al servidor. ¿Desea continuar en modo sin conexión usando datos en caché?</string>
     <string name="button_offline_prompt_confirm">Modo sin conexión</string>
     <string name="button_offline_prompt_dismiss">Cancelar</string>
+    <string name="button_go_online">Volver a estar en línea</string>
     <string name="content_description_not_cached">No disponible sin conexión</string>
     <string name="label_offline_mode">Modo sin conexión</string>
     <string name="desc_offline_mode">Explorar datos en caché sin conexión de red</string>

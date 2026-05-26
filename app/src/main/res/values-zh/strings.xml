@@ -68,6 +68,7 @@
     <string name="msg_offline_prompt">无法连接到服务器。是否要使用缓存数据继续离线模式？</string>
     <string name="button_offline_prompt_confirm">离线模式</string>
     <string name="button_offline_prompt_dismiss">取消</string>
+    <string name="button_go_online">切换到在线模式</string>
     <string name="content_description_not_cached">离线不可用</string>
     <string name="label_offline_mode">离线模式</string>
     <string name="desc_offline_mode">无需网络连接即可浏览缓存数据</string>
